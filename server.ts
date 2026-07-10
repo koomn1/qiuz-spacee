@@ -11,7 +11,6 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import { fileURLToPath } from 'url';
-import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
@@ -4334,6 +4333,7 @@ Respond in elegant Markdown format using custom bullet points and emojis to make
       // Vite integration middleware & production asset server
       const isProduction = process.env.NODE_ENV === 'production' || (typeof _filename !== 'undefined' && _filename.includes('dist'));
       if (!isProduction) {
+        const { createServer: createViteServer } = await import('vite');
         const vite = await createViteServer({
           server: { middlewareMode: true },
           appType: 'spa',
