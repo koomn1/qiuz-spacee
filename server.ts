@@ -4463,9 +4463,12 @@ Respond in elegant Markdown format using custom bullet points and emojis to make
         console.error('Server error:', err);
       });
 
-      server.listen(PORT, '0.0.0.0', () => {
-        console.log(`Server is running beautifully on http://0.0.0.0:${PORT}`);
-      });
+      // Do not run listen in serverless Vercel environment
+      if (process.env.VERCEL !== 'true') {
+        server.listen(PORT, '0.0.0.0', () => {
+          console.log(`Server is running beautifully on http://0.0.0.0:${PORT}`);
+        });
+      }
 
       // Graceful shutdown handling for Cloud Run scaling and redeployment
       const shutdown = (signal: string) => {
@@ -4487,3 +4490,5 @@ Respond in elegant Markdown format using custom bullet points and emojis to make
 }
 
 startServer();
+
+export default app;
