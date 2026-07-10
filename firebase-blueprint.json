@@ -1,0 +1,388 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with persistent state and quiz analytics.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The unique Firebase Authentication user ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "The chosen or Google-provided nickname/display name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The Google-associated email of the logged-in user."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Google Profile picture URL."
+        },
+        "isPremium": {
+          "type": "boolean",
+          "description": "Specifies whether the user is upgraded to Premium status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        }
+      },
+      "required": ["uid", "name", "createdAt"]
+    },
+    "PremiumRequest": {
+      "title": "PremiumRequest",
+      "description": "Payment receipt verification request sent by users to upgrade to premium.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique request document ID."
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the user who requested activation."
+        },
+        "userName": {
+          "type": "string",
+          "description": "Name of the applicant."
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Email address of the applicant."
+        },
+        "receiptUrl": {
+          "type": "string",
+          "description": "Base64 string or link representing the payment screenshot."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"],
+          "description": "Current authorization review status."
+        },
+        "rejectReason": {
+          "type": "string",
+          "description": "Optional administrative reason of disapproval."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when this demand was transmitted."
+        }
+      },
+      "required": ["id", "userId", "userEmail", "receiptUrl", "status", "createdAt"]
+    },
+    "Quiz": {
+      "title": "Quiz",
+      "description": "Representing a single user-generated or pre-loaded quiz.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Automatically generated quiz document ID."
+        },
+        "title": {
+          "type": "string",
+          "description": "The main Arabic title of the quiz."
+        },
+        "description": {
+          "type": "string",
+          "description": "Short description of the quiz subject."
+        },
+        "creatorId": {
+          "type": "string",
+          "description": "The UID of the quiz creator user."
+        },
+        "creatorName": {
+          "type": "string",
+          "description": "Name of the quiz creator when published."
+        },
+        "questions": {
+          "type": "array",
+          "description": "List of question maps (MCQ/TF)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of quiz publishing."
+        },
+        "totalPlays": {
+          "type": "integer",
+          "description": "Number of times this quiz was completed."
+        },
+        "avgRating": {
+          "type": "number",
+          "description": "Average review rating from 1 to 5."
+        },
+        "ratingsCount": {
+          "type": "integer",
+          "description": "Total count of ratings given."
+        },
+        "timeLimit": {
+          "type": "integer",
+          "description": "Optional countdown timer limit in seconds. 0 or absent if unlimited."
+        }
+      },
+      "required": ["id", "title", "creatorId", "creatorName", "questions", "createdAt", "totalPlays", "avgRating", "ratingsCount"]
+    },
+    "QuizCompletion": {
+      "title": "QuizCompletion",
+      "description": "Completed quiz attempt containing user score, rating, feedback and timing metric.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique completion ID."
+        },
+        "quizId": {
+          "type": "string",
+          "description": "Reference ID of the quiz taken."
+        },
+        "quizTitle": {
+          "type": "string",
+          "description": "Title of the quiz at completion time."
+        },
+        "takerId": {
+          "type": "string",
+          "description": "UID of the user who resolved the quiz."
+        },
+        "takerName": {
+          "type": "string",
+          "description": "Name of the user when resolving the quiz."
+        },
+        "score": {
+          "type": "integer",
+          "description": "Perfect or partial raw correct answers count."
+        },
+        "totalQuestions": {
+          "type": "integer",
+          "description": "Number of questions in the quiz at completion."
+        },
+        "rating": {
+          "type": "integer",
+          "description": "1 to 5 stars evaluation rating (if rated)."
+        },
+        "feedback": {
+          "type": "string",
+          "description": "Optional textual feedback review left by user."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Record creation timestamp."
+        }
+      },
+      "required": ["id", "quizId", "quizTitle", "takerId", "takerName", "score", "totalQuestions", "createdAt"]
+    },
+    "QuestionRating": {
+      "title": "QuestionRating",
+      "description": "Review/feedback rating (like/dislike) for individual quiz questions.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Compound ID matching userId_questionId."
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the user rating the question."
+        },
+        "quizId": {
+          "type": "string",
+          "description": "ID of the quiz."
+        },
+        "quizTitle": {
+          "type": "string",
+          "description": "Title of the quiz."
+        },
+        "questionId": {
+          "type": "string",
+          "description": "Unique question ID."
+        },
+        "questionText": {
+          "type": "string",
+          "description": "Full text of the question."
+        },
+        "ratingValue": {
+          "type": "string",
+          "enum": ["like", "dislike"],
+          "description": "Feedback evaluation choice."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when rated."
+        }
+      },
+      "required": ["id", "userId", "quizId", "quizTitle", "questionId", "questionText", "ratingValue", "createdAt"]
+    },
+    "Promotion": {
+      "title": "Promotion",
+      "description": "Special promotion configuration set by the administrator to discount subscription plans.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique promotion config string."
+        },
+        "discountPercent": {
+          "type": "integer",
+          "description": "Percentage discount to apply (e.g., 20 for 20%)."
+        },
+        "endDate": {
+          "type": "string",
+          "description": "Target date until which the offer is valid."
+        },
+        "applicablePlans": {
+          "type": "array",
+          "description": "Array of lowercase plan ids affected: silver, gold, diamond."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether the promotion is currently active."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp."
+        }
+      },
+      "required": ["id", "discountPercent", "endDate", "applicablePlans", "isActive", "createdAt"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "Special discount coupon configured by the administrator for instant code verification.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Coupon unique ID."
+        },
+        "code": {
+          "type": "string",
+          "description": "Actual coupon discount code phrase (e.g. SPECIAL50)"
+        },
+        "discountPercent": {
+          "type": "integer",
+          "description": "Discretionary percentage rate discount (1 to 100)."
+        },
+        "maxUses": {
+          "type": "integer",
+          "description": "Overall maximum usage limit."
+        },
+        "usedCount": {
+          "type": "integer",
+          "description": "Aggregated actual activations tally."
+        },
+        "expiryDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Target date until which coupon stays valid."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Explicit status switch."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        }
+      },
+      "required": ["id", "code", "discountPercent", "maxUses", "usedCount", "expiryDate", "isActive", "createdAt"]
+    },
+    "CommunityPost": {
+      "title": "CommunityPost",
+      "description": "Public community forum discussion post sharing ideas or challenge high scores.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Auto-generated post document ID." },
+        "text": { "type": "string", "description": "Author's thoughts or text content." },
+        "authorId": { "type": "string", "description": "UID of the post publisher." },
+        "authorName": { "type": "string", "description": "Author's display name." },
+        "authorBadgeSymbol": { "type": "string", "description": "Author's verification symbol." },
+        "authorBadgeColor": { "type": "string", "description": "Author's badge background coloring." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp." },
+        "likes": { "type": "integer", "description": "Total count of likes." },
+        "likedBy": { "type": "array", "description": "Array of UIDs who liked this." }
+      },
+      "required": ["id", "text", "authorId", "authorName", "createdAt", "likes", "likedBy"]
+    },
+    "DirectMessage": {
+      "title": "DirectMessage",
+      "description": "Private direct chat message sent inter-user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique key identifier." },
+        "senderId": { "type": "string", "description": "UID of the user sending the message." },
+        "senderName": { "type": "string", "description": "Sender display name." },
+        "receiverId": { "type": "string", "description": "UID of recipient user." },
+        "receiverName": { "type": "string", "description": "Recipient display name." },
+        "text": { "type": "string", "description": "Actual ciphertext or plaintext content." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp." },
+        "isRead": { "type": "boolean", "description": "Whether read by the receiver." }
+      },
+      "required": ["id", "senderId", "senderName", "receiverId", "receiverName", "text", "createdAt", "isRead"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "Live real-time notification published globally or direct.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Notification element unique ID." },
+        "title": { "type": "string", "description": "Notification concise header." },
+        "body": { "type": "string", "description": "Main notification detail or summary." },
+        "type": { "type": "string", "enum": ["quiz", "post", "direct_message"], "description": "Classification kind." },
+        "relatedId": { "type": "string", "description": "Optional routing or target document pointer." },
+        "senderName": { "type": "string", "description": "The user triggers the activity." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp." }
+      },
+      "required": ["id", "title", "body", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Allows individual users to capture profiles."
+    },
+    "premium_requests/{requestId}": {
+      "schema": "PremiumRequest",
+      "description": "Payment receipt verification requests sent by users to upgrade to premium."
+    },
+    "quizzes/{quizId}": {
+      "schema": "Quiz",
+      "description": "Collection of all quizzes playable globally."
+    },
+    "completions/{completionId}": {
+      "schema": "QuizCompletion",
+      "description": "Stores user completion histories and review feedback."
+    },
+    "question_ratings/{ratingId}": {
+      "schema": "QuestionRating",
+      "description": "Stores user feedback of individual questions."
+    },
+    "promotions/{promotionId}": {
+      "schema": "Promotion",
+      "description": "Contains active special offers configured by the admin."
+    },
+    "coupon_codes/{couponId}": {
+      "schema": "Coupon",
+      "description": "Contains admin created coupon codes for custom student discounts."
+    },
+    "community_posts/{postId}": {
+      "schema": "CommunityPost",
+      "description": "Holds academic community discussion posts."
+    },
+    "direct_messages/{messageId}": {
+      "schema": "DirectMessage",
+      "description": "Private direct messages between students and tutors."
+    },
+    "notifications/{notificationId}": {
+      "schema": "AppNotification",
+      "description": "Global and targeted notifications hub."
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Quiz Space",
+  "description": "An interactive Arabic platform for creating, solving, and sharing quizzes, powered by Gemini AI to extract questions from images and track personalized profiles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

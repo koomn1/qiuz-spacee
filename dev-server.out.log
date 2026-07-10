@@ -1,0 +1,7 @@
+
+> react-example@0.0.0 dev
+> tsx server.ts
+
+◇ injected env (12) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Firebase Admin SDK initialized with projectId: quiz-spacee
+VAPID keys not configured in environment. Generating dynamic fallback keys...

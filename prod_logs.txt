@@ -1,0 +1,15 @@
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Firebase Admin SDK initialized with projectId: curious-gadget-k71nt
+Postgres Quizzes seed completed. ✅
+VAPID keys not configured in environment. Generating dynamic fallback keys...
+[Process Error] Uncaught Exception: Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1941:16)
+    at listenInCluster (node:net:1998:12)
+    at node:net:2207:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3000
+}

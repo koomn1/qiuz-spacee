@@ -1,0 +1,191 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for validation
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (request.auth.token.email == "yo01009950871@gmail.com" || request.auth.token.email == "adman777888999@gmail.com");
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidQuiz(data) {
+      return data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 500
+        && data.questions is list
+        && data.questions.size() > 0
+        && data.questions.size() <= 500;
+    }
+
+    // Default catch-all deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if true; // Public access for user profiles and leaderboards
+      allow create: if isSuperAdmin() || (
+        (isOwner(userId) || ( !isSignedIn() && userId.matches('^user-.*') ))
+        && incoming().uid == userId
+        && incoming().name is string
+        && incoming().name.size() > 0
+        && incoming().name.size() <= 64
+      );
+      allow update: if isSuperAdmin() || (
+        (isOwner(userId) || ( !isSignedIn() && userId.matches('^user-.*') ))
+        && (!('isPremium' in incoming()) || !('isPremium' in existing()) || incoming().isPremium == existing().isPremium)
+        && incoming().uid == userId
+        && incoming().name is string
+        && incoming().name.size() > 0
+        && incoming().name.size() <= 64
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // Premium Requests Rules
+    match /premium_requests/{requestId} {
+      allow read: if isSuperAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list: if isSuperAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn()
+        && incoming().id == requestId
+        && incoming().userId == request.auth.uid
+        && incoming().receiptUrl is string;
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // Quizzes Rules
+    match /quizzes/{quizId} {
+      allow read, list: if true; // Quizzes are public
+      
+      allow create: if (
+          (isSignedIn() && incoming().creatorId == request.auth.uid)
+          ||
+          (!isSignedIn() && incoming().creatorId is string && incoming().creatorId.matches('^user-.*'))
+          ||
+          (incoming().creatorId == "system-demo" && incoming().id in ["web-basics-demo", "ai-trends-demo"])
+        )
+        && incoming().id == quizId
+        && isValidQuiz(incoming());
+
+      allow update: if (
+        // Super Admin override
+        isSuperAdmin()
+        ||
+        // Option 1: Creator edit (Any signed-in user updating quiz, or original creator)
+        (isSignedIn() && incoming().creatorId == request.auth.uid && isValidQuiz(incoming()))
+        ||
+        // Option 1B: Guest creator edit
+        (!isSignedIn() && (
+          !('creatorId' in existing()) 
+          || (existing().creatorId is string && existing().creatorId.matches('^user-.*'))
+          || existing().creatorId == "anonymous-user" 
+          || existing().creatorId == ""
+        ) && incoming().creatorId is string && incoming().creatorId.matches('^user-.*') && isValidQuiz(incoming()))
+        ||
+        // Option 2: Solvers updating statistics and ratings only
+        (incoming().diff(existing()).affectedKeys().hasOnly(['totalPlays', 'avgRating', 'ratingsCount']))
+      );
+      
+      allow delete: if isSuperAdmin() 
+        || (isSignedIn() && (
+          !('creatorId' in existing()) 
+          || existing().creatorId == request.auth.uid 
+          || existing().creatorId == "anonymous-user" 
+          || existing().creatorId == ""
+          || (existing().creatorId is string && existing().creatorId.matches('^user-.*'))
+        ))
+        || (!isSignedIn() && (
+          !('creatorId' in existing()) 
+          || (existing().creatorId is string && existing().creatorId.matches('^user-.*'))
+          || existing().creatorId == "anonymous-user" 
+          || existing().creatorId == ""
+        ));
+    }
+
+    // Quiz Completions Rules
+    match /completions/{completionId} {
+      allow read, list: if true; // Allow sharing certificates or public list queries
+      
+      allow create: if true // Anyone can submit (signed-in saves under uid, guest saves under custom ID)
+        && incoming().id == completionId
+        && incoming().quizId is string
+        && incoming().quizTitle is string
+        && incoming().quizTitle.size() > 0
+        && incoming().score is int
+        && incoming().totalQuestions is int;
+
+      allow update, delete: if false; // Completions are immutable logs
+    }
+
+    // Question Ratings Rules
+    match /question_ratings/{ratingId} {
+      allow read, list: if true; // Public list or read feedback
+      allow create, update: if (isSignedIn() && incoming().userId == request.auth.uid) || (!isSignedIn() && incoming().userId.matches('^user-.*'));
+      allow delete: if isSuperAdmin() || (isSignedIn() && existing().userId == request.auth.uid) || (!isSignedIn() && existing().userId.matches('^user-.*'));
+    }
+
+    // Promotions & Special Offers Rules
+    match /promotions/{promotionId} {
+      allow read, list: if true; // Public access to see discounts
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    // Coupon Codes Rules
+    match /coupon_codes/{couponId} {
+      allow read: if true; // Public can get a coupon to check if it's valid
+      allow list: if isSuperAdmin(); // Prevent regular users from listing all coupons
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    // Community Posts Rules
+    match /community_posts/{postId} {
+      allow read, list: if true; // Posts are publicly readable
+      allow create: if true;     // Any student can post
+      allow update: if true;     // Any student can like or edit
+      allow delete: if isSuperAdmin() || (existing().authorId == request.auth.uid) || (existing().authorId == "anonymous-user");
+    }
+
+    // Direct Messages Rules
+    match /direct_messages/{messageId} {
+      allow read, list: if isSignedIn() && (existing().senderId == request.auth.uid || existing().receiverId == request.auth.uid);
+      allow create: if isSignedIn()
+        && incoming().senderId == request.auth.uid
+        && incoming().senderName is string
+        && incoming().receiverId is string
+        && incoming().receiverName is string
+        && incoming().text is string
+        && incoming().isRead == false;
+      allow update: if isSignedIn()
+        && (existing().receiverId == request.auth.uid || existing().senderId == request.auth.uid)
+        && incoming().diff(existing()).affectedKeys().hasOnly(['isRead']);
+      allow delete: if isSuperAdmin() || (isSignedIn() && existing().senderId == request.auth.uid);
+    }
+
+    // Real-time Notifications Rules
+    match /notifications/{notificationId} {
+      allow read, list: if true;
+      allow create: if true;
+      allow update, delete: if isSuperAdmin();
+    }
+  }
+}

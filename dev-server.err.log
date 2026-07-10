@@ -1,0 +1,21 @@
+Failed to seed Postgres Quizzes database: DrizzleQueryError: Failed query: select "id", "title", "description", "creator_id", "creator_name", "questions", "total_plays", "avg_rating", "ratings_count", "time_limit", "created_at", "category", "distribution_routing", "classroom_id" from "quizzes" where "quizzes"."id" = $1 limit $2
+params: web-basics-demo,1
+    at NodePgPreparedQuery.queryWithCache (C:\Users\Admin\Downloads\quiz-space (4)\node_modules\src\pg-core\session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async <anonymous> (C:\Users\Admin\Downloads\quiz-space (4)\node_modules\src\node-postgres\session.ts:154:19)
+    at async ensureDbPostgres (C:\Users\Admin\Downloads\quiz-space (4)\server.ts:221:22) {
+  query: 'select "id", "title", "description", "creator_id", "creator_name", "questions", "total_plays", "avg_rating", "ratings_count", "time_limit", "created_at", "category", "distribution_routing", "classroom_id" from "quizzes" where "quizzes"."id" = $1 limit $2',
+  params: [ 'web-basics-demo', 1 ],
+  cause: AggregateError [ECONNREFUSED]: 
+      at C:\Users\Admin\Downloads\quiz-space (4)\node_modules\pg-pool\index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async <anonymous> (C:\Users\Admin\Downloads\quiz-space (4)\node_modules\src\node-postgres\session.ts:161:13)
+      at async NodePgPreparedQuery.queryWithCache (C:\Users\Admin\Downloads\quiz-space (4)\node_modules\src\pg-core\session.ts:71:12)
+      at async <anonymous> (C:\Users\Admin\Downloads\quiz-space (4)\node_modules\src\node-postgres\session.ts:154:19)
+      at async ensureDbPostgres (C:\Users\Admin\Downloads\quiz-space (4)\server.ts:221:22) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[31mWebSocket server error: Port 24678 is already in use[39m
+[Fatal] Port 3000 is already in use. Exiting process so process manager can restart the server.
