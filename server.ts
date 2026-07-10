@@ -392,9 +392,10 @@ function parseJsonSafely(text: string): any {
   }
 }
 
+export const app = express();
+
 // Start Server Setup
 async function startServer() {
-    const app = express();
       app.set('trust proxy', 1);
       const PORT = 3000;
 
