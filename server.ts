@@ -636,7 +636,11 @@ async function startServer() {
           res.json(allQuizzes);
         } catch (err: any) {
           console.error('Error fetching quizzes from Postgres:', err);
-          res.status(500).json({ error: 'عذراً! فشل جلب الاختبارات من قاعدة البيانات.' });
+          res.status(500).json({ 
+            error: 'عذراً! فشل جلب الاختبارات من قاعدة البيانات.',
+            details: err.message,
+            stack: err.stack
+          });
         }
       });
 
